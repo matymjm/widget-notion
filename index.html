@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: #0f0f0f;
+      color: #ffffff;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, monospace;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      overflow: hidden;
+    }
+    .container { display: flex; align-items: center; gap: 24px; }
+    .ring-wrapper { position: relative; width: 140px; height: 140px; display: flex; align-items: center; justify-content: center; }
+    svg { transform: rotate(-90deg); width: 140px; height: 140px; }
+    circle { fill: none; stroke-width: 8; }
+    .bg-circle { stroke: #222222; }
+    .progress-circle { stroke: #f5a623; stroke-linecap: round; stroke-dasharray: 377; stroke-dashoffset: 377; transition: stroke-dashoffset 0.5s ease; }
+    .inner-text { position: absolute; text-align: center; display: flex; flex-direction: column; align-items: center; }
+    .pct-number { font-size: 38px; font-weight: 800; line-height: 1; letter-spacing: -1px; }
+    .phase-label { font-size: 10px; color: #888888; text-transform: uppercase; letter-spacing: 1.5px; margin-top: 4px; font-weight: 600; }
+    .time-label { font-size: 11px; color: #aaaaaa; margin-top: 2px; font-family: monospace; }
+    .info-side { display: flex; flex-direction: column; gap: 6px; }
+    .status-line { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 700; }
+    .sub-line { font-size: 12px; color: #888888; font-family: monospace; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="ring-wrapper">
+      <svg viewBox="0 0 130 130">
+        <circle class="bg-circle" cx="65" cy="65" r="60" />
+        <circle id="bar" class="progress-circle" cx="65" cy="65" r="60" />
+      </svg>
+      <div class="inner-text">
+        <span id="pct" class="pct-number">0</span>
+        <span id="phase" class="phase-label">MONDAY</span>
+        <span id="time" class="time-label">12:00 PM</span>
+      </div>
+    </div>
+    <div class="info-side">
+      <div class="status-line">
+        <span>⚡</span>
+        <span id="status-text">Midday — keep moving</span>
+      </div>
+      <div id="awake-time" class="sub-line">10h 00m awake time left</div>
+    </div>
+  </div>
+
+  <script>
+    function updateWidget() {
+      const now = new Date();
+      const hours = now.getHours();
+      const minutes = now.getMinutes();
+      const totalSecondsToday = (hours * 3600) + (minutes * 60) + now.getSeconds();
+      const pct = Math.floor((totalSecondsToday / 86400) * 100);
+      const circ = 377;
+      const offset = circ - (circ * pct / 100);
+      document.getElementById('bar').style.strokeDashoffset = offset;
+      document.getElementById('pct').innerText = pct;
+
+      const days = ["SUNDAY", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY"];
+      document.getElementById('phase').innerText = days[now.getDay()];
+
+      let statusMsg = "Midday — keep moving";
+      if (hours < 12) statusMsg = "Morning — win the day";
+      else if (hours < 17) statusMsg = "Midday — keep moving";
+      else if (hours < 21) statusMsg = "Afternoon — finish strong";
+      else statusMsg = "Night — reset & rest";
+      document.getElementById('status-text').innerText = statusMsg;
+
+      let h12 = hours % 12 || 12;
+      let ampm = hours >= 12 ? 'PM' : 'AM';
+      let mStr = minutes < 10 ? '0' + minutes : minutes;
+      document.getElementById('time').innerText = h12 + ':' + mStr + ' ' + ampm;
+
+      const sleepHour = 23;
+      let secondsLeft = (sleepHour * 3600) - totalSecondsToday;
+      if (secondsLeft < 0) secondsLeft = 0;
+      let hLeft = Math.floor(secondsLeft / 3600);
+      let mLeft = Math.floor((secondsLeft % 3600) / 60);
+      document.getElementById('awake-time').innerText = hLeft + 'h ' + mLeft + 'm awake time left';
+    }
+    updateWidget();
+    setInterval(updateWidget, 10000);
+  </script>
+</body>
+</html>
