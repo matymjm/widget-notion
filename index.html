@@ -17,37 +17,6 @@
       margin: 0 auto;
     }
 
-    /* Top Bar */
-    .top-bar {
-      display: flex;
-      justify-content: flex-end;
-      align-items: center;
-      gap: 16px;
-    }
-    .coins-badge {
-      background-color: #1a1625;
-      border: 1px solid #2d2640;
-      border-radius: 20px;
-      padding: 6px 14px;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 700;
-      font-size: 14px;
-      color: #f5a623;
-    }
-    .profile-avatar {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: linear-gradient(135deg, #a855f7, #6366f1);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-weight: bold;
-      font-size: 14px;
-    }
-
     /* Header & Progress Circle Section */
     .main-widget {
       display: flex;
@@ -225,7 +194,7 @@
     .todo-input::placeholder { color: #52525b; }
     .todo-input:focus { border-color: #3f3f46; }
 
-    .btn {
+    .btn-add {
       padding: 10px 18px;
       border-radius: 10px;
       font-weight: 600;
@@ -235,23 +204,14 @@
       display: flex;
       align-items: center;
       gap: 6px;
+      background-color: #ffffff;
+      color: #000000;
       transition: background 0.2s;
     }
-    .btn-add { background-color: #ffffff; color: #000000; }
     .btn-add:hover { background-color: #e4e4e7; }
-    .btn-polish { background-color: #1e1b2e; border: 1px solid #3b2d54; color: #a855f7; }
-    .btn-polish:hover { background-color: #27223b; }
   </style>
 </head>
 <body>
-
-  <!-- Top Bar -->
-  <div class="top-bar">
-    <div class="coins-badge">
-      🪙 <span id="coin-count">0</span>
-    </div>
-    <div class="profile-avatar">M</div>
-  </div>
 
   <!-- Main Clock Widget -->
   <div class="main-widget">
@@ -297,13 +257,40 @@
 
     <div class="todo-input-row">
       <input type="text" id="todo-input" class="todo-input" placeholder="Add a goal for today..." onkeydown="if(event.key === 'Enter') addTodo()">
-      <button class="btn btn-add" onclick="addTodo()">+ Add</button>
-      <button class="btn btn-polish" onclick="polishGoals()">✨ Polish</button>
+      <button class="btn-add" onclick="addTodo()">+ Add</button>
     </div>
   </div>
 
   <script>
     let todos = JSON.parse(localStorage.getItem('heroes_todos') || '[]');
+    let streakData = JSON.parse(localStorage.getItem('heroes_streak') || '{"count": 0, "lastDate": ""}');
+
+    function getTodayString() {
+      const d = new Date();
+      return `${d.getFullYear()}-${d.getMonth()+1}-${d.getDate()}`;
+    }
+
+    function checkStreak() {
+      const today = getTodayString();
+      const hasCompleted = todos.some(t => t.done);
+
+      if (hasCompleted) {
+        if (streakData.lastDate !== today) {
+          const yesterday = new Date();
+          yesterday.setDate(yesterday.getDate() - 1);
+          const yesterdayStr = `${yesterday.getFullYear()}-${yesterday.getMonth()+1}-${yesterday.getDate()}`;
+
+          if (streakData.lastDate === yesterdayStr) {
+            streakData.count += 1;
+          } else {
+            streakData.count = 1;
+          }
+          streakData.lastDate = today;
+          localStorage.setItem('heroes_streak', JSON.stringify(streakData));
+        }
+      }
+      document.getElementById('streak-count').innerText = `${streakData.count} DAY STREAK`;
+    }
 
     function updateClock() {
       const now = new Date();
@@ -343,8 +330,6 @@
       const totalSecondsToday = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
       
       const alarmVal = document.getElementById('alarm-time').value || "08:00";
-      const [aHour, aMin] = alarmVal.split(':').map(Number);
-      
       let sleepHour = 23;
       let secondsLeft = (sleepHour * 3600) - totalSecondsToday;
       if (secondsLeft < 0) secondsLeft = 0;
@@ -372,6 +357,7 @@
       document.getElementById('completed-count').innerText = completed;
       document.getElementById('total-count').innerText = todos.length;
       localStorage.setItem('heroes_todos', JSON.stringify(todos));
+      checkStreak();
     }
 
     function addTodo() {
@@ -386,15 +372,6 @@
 
     function toggleTodo(index) {
       todos[index].done = !todos[index].done;
-      renderTodos();
-    }
-
-    function polishGoals() {
-      if (todos.length === 0) return;
-      todos = todos.map(t => ({
-        ...t,
-        text: t.text.charAt(0).toUpperCase() + t.text.slice(1).toLowerCase()
-      }));
       renderTodos();
     }
 
