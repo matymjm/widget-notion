@@ -17,6 +17,37 @@
       margin: 0 auto;
     }
 
+    /* Top Bar */
+    .top-bar {
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+      gap: 16px;
+    }
+    .coins-badge {
+      background-color: #1a1625;
+      border: 1px solid #2d2640;
+      border-radius: 20px;
+      padding: 6px 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-weight: 700;
+      font-size: 14px;
+      color: #f5a623;
+    }
+    .profile-avatar {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #a855f7, #6366f1);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      font-size: 14px;
+    }
+
     /* Header & Progress Circle Section */
     .main-widget {
       display: flex;
@@ -194,7 +225,7 @@
     .todo-input::placeholder { color: #52525b; }
     .todo-input:focus { border-color: #3f3f46; }
 
-    .btn-add {
+    .btn {
       padding: 10px 18px;
       border-radius: 10px;
       font-weight: 600;
@@ -204,14 +235,23 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      background-color: #ffffff;
-      color: #000000;
       transition: background 0.2s;
     }
+    .btn-add { background-color: #ffffff; color: #000000; }
     .btn-add:hover { background-color: #e4e4e7; }
+    .btn-polish { background-color: #1e1b2e; border: 1px solid #3b2d54; color: #a855f7; }
+    .btn-polish:hover { background-color: #27223b; }
   </style>
 </head>
 <body>
+
+  <!-- Top Bar -->
+  <div class="top-bar">
+    <div class="coins-badge">
+      🪙 <span id="coin-count">0</span>
+    </div>
+    <div class="profile-avatar">M</div>
+  </div>
 
   <!-- Main Clock Widget -->
   <div class="main-widget">
@@ -257,7 +297,8 @@
 
     <div class="todo-input-row">
       <input type="text" id="todo-input" class="todo-input" placeholder="Add a goal for today..." onkeydown="if(event.key === 'Enter') addTodo()">
-      <button class="btn-add" onclick="addTodo()">+ Add</button>
+      <button class="btn btn-add" onclick="addTodo()">+ Add</button>
+      <button class="btn btn-polish" onclick="polishGoals()">✨ Polish</button>
     </div>
   </div>
 
@@ -372,6 +413,15 @@
 
     function toggleTodo(index) {
       todos[index].done = !todos[index].done;
+      renderTodos();
+    }
+
+    function polishGoals() {
+      if (todos.length === 0) return;
+      todos = todos.map(t => ({
+        ...t,
+        text: t.text.charAt(0).toUpperCase() + t.text.slice(1).toLowerCase()
+      }));
       renderTodos();
     }
 
