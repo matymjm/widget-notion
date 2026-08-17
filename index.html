@@ -2,6 +2,7 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Dashboard Heroes Academy</title>
   <style>
     * { box-sizing: border-box; margin: 0; padding: 0; }
@@ -262,8 +263,15 @@
   </div>
 
   <script>
-    let todos = JSON.parse(localStorage.getItem('heroes_todos') || '[]');
-    let streakData = JSON.parse(localStorage.getItem('heroes_streak') || '{"count": 0, "lastDate": ""}');
+    let todos = [];
+    let streakData = { count: 0, lastDate: "" };
+
+    try {
+      todos = JSON.parse(localStorage.getItem('heroes_todos') || '[]');
+      streakData = JSON.parse(localStorage.getItem('heroes_streak') || '{"count": 0, "lastDate": ""}');
+    } catch (e) {
+      console.error("Error cargando localStorage", e);
+    }
 
     function getTodayString() {
       const d = new Date();
@@ -286,7 +294,9 @@
             streakData.count = 1;
           }
           streakData.lastDate = today;
-          localStorage.setItem('heroes_streak', JSON.stringify(streakData));
+          try {
+            localStorage.setItem('heroes_streak', JSON.stringify(streakData));
+          } catch(e){}
         }
       }
       document.getElementById('streak-count').innerText = `${streakData.count} DAY STREAK`;
@@ -329,7 +339,6 @@
       const now = new Date();
       const totalSecondsToday = (now.getHours() * 3600) + (now.getMinutes() * 60) + now.getSeconds();
       
-      const alarmVal = document.getElementById('alarm-time').value || "08:00";
       let sleepHour = 23;
       let secondsLeft = (sleepHour * 3600) - totalSecondsToday;
       if (secondsLeft < 0) secondsLeft = 0;
@@ -348,7 +357,7 @@
         const item = document.createElement('div');
         item.className = `todo-item ${todo.done ? 'completed' : ''}`;
         item.innerHTML = `
-          <span>${todo.text}</span>
+          <span>${escapeHtml(todo.text)}</span>
           <input type="checkbox" ${todo.done ? 'checked' : ''} onchange="toggleTodo(${index})">
         `;
         listContainer.appendChild(item);
@@ -356,8 +365,14 @@
 
       document.getElementById('completed-count').innerText = completed;
       document.getElementById('total-count').innerText = todos.length;
-      localStorage.setItem('heroes_todos', JSON.stringify(todos));
+      try {
+        localStorage.setItem('heroes_todos', JSON.stringify(todos));
+      } catch(e){}
       checkStreak();
+    }
+
+    function escapeHtml(str) {
+      return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
     }
 
     function addTodo() {
